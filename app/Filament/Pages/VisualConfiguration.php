@@ -49,7 +49,6 @@ class VisualConfiguration extends Page implements HasTree
     {
         return $tree
             ->maxDepth(10)
-            ->enableDragAndDrop()
             ->modifyQueryUsing(fn($query) => $query->orderBy('sort_order'))
             ->fields([
                 TextField::make('name')
