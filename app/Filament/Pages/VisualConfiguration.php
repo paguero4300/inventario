@@ -62,6 +62,51 @@ class VisualConfiguration extends Page implements HasTree
                 TextField::make('sku_part'),
             ])
             ->recordActions([
+                Action::make('addChild')
+                    ->label('Añadir Hijo')
+                    ->icon('heroicon-o-plus-circle')
+                    ->color('success')
+                    ->form([
+                        TextInput::make('name')
+                            ->label('Nombre')
+                            ->required()
+                            ->maxLength(100),
+                        TextInput::make('sku_part')
+                            ->label('SKU')
+                            ->maxLength(50),
+                        Select::make('parent_id')
+                            ->label('Padre')
+                            ->options(ConfigurationOption::query()->pluck('name', 'id'))
+                            ->searchable()
+                            ->disabled()
+                            ->dehydrated(),
+                        Select::make('category_id')
+                            ->label('Categoría')
+                            ->relationship('category', 'name')
+                            ->searchable()
+                            ->nullable(),
+                        TextInput::make('next_step_label')
+                            ->label('Etiqueta Siguiente Paso')
+                            ->maxLength(100),
+                        TextInput::make('sort_order')
+                            ->label('Orden')
+                            ->numeric()
+                            ->default(0),
+                        Toggle::make('is_active')
+                            ->label('Activo')
+                            ->default(true),
+                    ])
+                    ->fillForm(fn(ConfigurationOption $record): array => [
+                        'parent_id' => $record->id,
+                    ])
+                    ->action(function (ConfigurationOption $record, array $data) {
+                        ConfigurationOption::create($data);
+
+                        Notification::make()
+                            ->title('Hijo creado exitosamente')
+                            ->success()
+                            ->send();
+                    }),
                 Action::make('edit')
                     ->label('Editar')
                     ->icon('heroicon-o-pencil')
