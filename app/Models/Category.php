@@ -13,13 +13,11 @@ class Category extends Model
         'slug',
         'icon',
         'default_unit_id',
-        'specifications_schema',
         'is_active',
         'sort_order',
     ];
 
     protected $casts = [
-        'specifications_schema' => 'array',
         'is_active' => 'boolean',
     ];
 
