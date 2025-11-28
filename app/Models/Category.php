@@ -35,4 +35,9 @@ class Category extends Model
     {
         return $this->hasMany(UnitConversion::class);
     }
+
+    public function configurationOptions(): HasMany
+    {
+        return $this->hasMany(ConfigurationOption::class);
+    }
 }
