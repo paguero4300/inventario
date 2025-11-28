@@ -47,20 +47,20 @@ class Product extends Model
             $query->where('location_id', $locationId);
         }
 
-        // Use COALESCE to fallback to quantity if quantity_base is NULL
+        // Sum COALESCE per row (not COALESCE of sums)
         $entradas = $query->clone()
             ->where('entry_type', 'entrada')
-            ->selectRaw('COALESCE(SUM(quantity_base), SUM(quantity)) as total')
+            ->selectRaw('SUM(COALESCE(quantity_base, quantity)) as total')
             ->value('total') ?? 0;
 
         $salidas = $query->clone()
             ->where('entry_type', 'salida')
-            ->selectRaw('COALESCE(SUM(quantity_base), SUM(quantity)) as total')
+            ->selectRaw('SUM(COALESCE(quantity_base, quantity)) as total')
             ->value('total') ?? 0;
 
         $ajustes = $query->clone()
             ->where('entry_type', 'ajuste')
-            ->selectRaw('COALESCE(SUM(quantity_base), SUM(quantity)) as total')
+            ->selectRaw('SUM(COALESCE(quantity_base, quantity)) as total')
             ->value('total') ?? 0;
 
         return $entradas - $salidas + $ajustes;
