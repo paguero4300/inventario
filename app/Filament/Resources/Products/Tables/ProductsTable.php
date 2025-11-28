@@ -31,6 +31,16 @@ class ProductsTable
                     ->searchable(),
                 TextColumn::make('color')
                     ->searchable(),
+                TextColumn::make('stock_actual')
+                    ->label('Stock Actual')
+                    ->getStateUsing(fn($record) => $record->getCurrentStock())
+                    ->numeric(decimalPlaces: 2)
+                    ->sortable(query: function ($query, $direction) {
+                        // Custom sort by calculating stock
+                        return $query; // Can't sort calculated fields easily
+                    })
+                    ->badge()
+                    ->color(fn($state) => $state > 0 ? 'success' : ($state < 0 ? 'danger' : 'warning')),
                 IconColumn::make('is_active')
                     ->boolean(),
                 TextColumn::make('created_at')

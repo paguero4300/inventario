@@ -33,4 +33,43 @@ class Product extends Model
     {
         return $this->hasMany(InventoryEntry::class);
     }
+
+    /**
+     * Calculate current stock based on inventory entries
+     * Entradas (+) - Salidas (-) + Ajustes
+     */
+    public function getCurrentStock(?int $locationId = null): float
+    {
+        $query = $this->inventoryEntries();
+
+        if ($locationId !== null) {
+            $query->where('location_id', $locationId);
+        }
+
+        $entradas = $query->clone()->where('entry_type', 'entrada')->sum('quantity_base') ?? 0;
+        $salidas = $query->clone()->where('entry_type', 'salida')->sum('quantity_base') ?? 0;
+        $ajustes = $query->clone()->where('entry_type', 'ajuste')->sum('quantity_base') ?? 0;
+
+        return $entradas - $salidas + $ajustes;
+    }
+
+    /**
+     * Get stock grouped by location
+     */
+    public function getStockByLocation(): array
+    {
+        $locations = $this->inventoryEntries()
+            ->select('location_id')
+            ->distinct()
+            ->whereNotNull('location_id')
+            ->pluck('location_id');
+
+        $stockByLocation = [];
+
+        foreach ($locations as $locationId) {
+            $stockByLocation[$locationId] = $this->getCurrentStock($locationId);
+        }
+
+        return $stockByLocation;
+    }
 }
