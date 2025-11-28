@@ -16,9 +16,9 @@
             <div class="flex items-center gap-3">
                 {{-- Icono según si tiene hijos --}}
                 @if($node->children_tree->isNotEmpty())
-                <x-heroicon-m-folder class="w-5 h-5 text-yellow-500" />
+                <x-heroicon-m-folder class="text-yellow-500" style="width: 20px; height: 20px;" />
                 @else
-                <x-heroicon-m-document class="w-5 h-5 text-gray-400" />
+                <x-heroicon-m-document class="text-gray-400" style="width: 20px; height: 20px;" />
                 @endif
 
                 <div>
