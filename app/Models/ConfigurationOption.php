@@ -81,4 +81,47 @@ class ConfigurationOption extends Model
     {
         return $query->where('is_active', true);
     }
+
+    /**
+     * Boot method to override deletion behavior
+     */
+    protected static function boot()
+    {
+        parent::boot();
+
+        // Override deletion to handle descendants manually (fixes MariaDB CTE issue)
+        static::deleting(function (ConfigurationOption $option) {
+            // Get all descendants recursively and delete them
+            $option->deleteDescendantsManually();
+        });
+    }
+
+    /**
+     * Manually delete all descendants (workaround for MariaDB CTE issue)
+     */
+    protected function deleteDescendantsManually(): void
+    {
+        $children = static::where('parent_id', $this->id)->get();
+
+        foreach ($children as $child) {
+            // Recursively delete children first
+            $child->delete();
+        }
+    }
+
+    /**
+     * Get descendants count (manual implementation)
+     */
+    public function getDescendantsCount(): int
+    {
+        $count = 0;
+        $children = static::where('parent_id', $this->id)->get();
+
+        foreach ($children as $child) {
+            $count++; // Count this child
+            $count += $child->getDescendantsCount(); // Add its descendants
+        }
+
+        return $count;
+    }
 }

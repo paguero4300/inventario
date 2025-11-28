@@ -176,7 +176,7 @@ class VisualConfiguration extends Page implements HasTree
                 DeleteAction::make()
                     ->label('Eliminar')
                     ->modalDescription(function (ConfigurationOption $record): string {
-                        $count = $record->descendants()->count();
+                        $count = $record->getDescendantsCount();
                         if ($count === 0) {
                             return '¿Estás seguro de que deseas eliminar esta opción?';
                         }
