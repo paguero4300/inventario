@@ -5,10 +5,11 @@ namespace App\Filament\Pages;
 use App\Models\ConfigurationOption;
 use Filament\Pages\Page;
 use Openplain\FilamentTreeView\Concerns\InteractsWithTree;
+use Openplain\FilamentTreeView\Contracts\HasTree;
 use Openplain\FilamentTreeView\Fields\TextField;
 use Openplain\FilamentTreeView\Tree\Tree;
 
-class VisualConfiguration extends Page
+class VisualConfiguration extends Page implements HasTree
 {
     use InteractsWithTree;
 
