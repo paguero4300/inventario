@@ -10,9 +10,26 @@ class CreateConfigurationOption extends CreateRecord
 {
     protected static string $resource = ConfigurationOptionResource::class;
 
+    protected function mount()
+    {
+        parent::mount();
+
+        // Pre-llenar formulario si viene con parent en URL
+        if ($parentId = request()->query('parent')) {
+            $parent = ConfigurationOption::find($parentId);
+
+            if ($parent) {
+                $this->form->fill([
+                    'parent_id' => $parentId,
+                    'category_id' => $parent->category_id,
+                ]);
+            }
+        }
+    }
+
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        // Si viene con parent en query string, pre-llenar
+        // Si viene con parent en query string, asegurar que se guarde
         if ($parentId = request()->query('parent')) {
             $data['parent_id'] = $parentId;
 
