@@ -3,6 +3,12 @@
 namespace App\Filament\Pages;
 
 use App\Models\ConfigurationOption;
+use Filament\Actions\Action;
+use Filament\Actions\DeleteAction;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
+use Filament\Notifications\Notification;
 use Filament\Pages\Page;
 use Openplain\FilamentTreeView\Concerns\InteractsWithTree;
 use Openplain\FilamentTreeView\Contracts\HasTree;
@@ -54,6 +60,113 @@ class VisualConfiguration extends Page implements HasTree
             ->fields([
                 TextField::make('name'),
                 TextField::make('sku_part'),
+            ])
+            ->actions([
+                Action::make('create')
+                    ->label('Nueva Opción')
+                    ->icon('heroicon-o-plus')
+                    ->form([
+                        TextInput::make('name')
+                            ->label('Nombre')
+                            ->required()
+                            ->maxLength(100),
+                        TextInput::make('sku_part')
+                            ->label('SKU')
+                            ->maxLength(50),
+                        Select::make('parent_id')
+                            ->label('Padre')
+                            ->options(ConfigurationOption::query()->pluck('name', 'id'))
+                            ->searchable()
+                            ->nullable(),
+                        Select::make('category_id')
+                            ->label('Categoría')
+                            ->relationship('category', 'name')
+                            ->searchable()
+                            ->nullable(),
+                        TextInput::make('next_step_label')
+                            ->label('Etiqueta Siguiente Paso')
+                            ->maxLength(100),
+                        TextInput::make('sort_order')
+                            ->label('Orden')
+                            ->numeric()
+                            ->default(0),
+                        Toggle::make('is_active')
+                            ->label('Activo')
+                            ->default(true),
+                    ])
+                    ->action(function (array $data) {
+                        ConfigurationOption::create($data);
+
+                        Notification::make()
+                            ->title('Opción creada exitosamente')
+                            ->success()
+                            ->send();
+                    }),
+            ])
+            ->recordActions([
+                Action::make('edit')
+                    ->label('Editar')
+                    ->icon('heroicon-o-pencil')
+                    ->fillForm(fn(ConfigurationOption $record): array => [
+                        'name' => $record->name,
+                        'sku_part' => $record->sku_part,
+                        'parent_id' => $record->parent_id,
+                        'category_id' => $record->category_id,
+                        'next_step_label' => $record->next_step_label,
+                        'sort_order' => $record->sort_order,
+                        'is_active' => $record->is_active,
+                    ])
+                    ->form([
+                        TextInput::make('name')
+                            ->label('Nombre')
+                            ->required()
+                            ->maxLength(100),
+                        TextInput::make('sku_part')
+                            ->label('SKU')
+                            ->maxLength(50),
+                        Select::make('parent_id')
+                            ->label('Padre')
+                            ->options(
+                                fn(ConfigurationOption $record) =>
+                                ConfigurationOption::query()
+                                    ->where('id', '!=', $record->id)
+                                    ->pluck('name', 'id')
+                            )
+                            ->searchable()
+                            ->nullable(),
+                        Select::make('category_id')
+                            ->label('Categoría')
+                            ->relationship('category', 'name')
+                            ->searchable()
+                            ->nullable(),
+                        TextInput::make('next_step_label')
+                            ->label('Etiqueta Siguiente Paso')
+                            ->maxLength(100),
+                        TextInput::make('sort_order')
+                            ->label('Orden')
+                            ->numeric()
+                            ->default(0),
+                        Toggle::make('is_active')
+                            ->label('Activo')
+                            ->default(true),
+                    ])
+                    ->action(function (ConfigurationOption $record, array $data) {
+                        $record->update($data);
+
+                        Notification::make()
+                            ->title('Opción actualizada exitosamente')
+                            ->success()
+                            ->send();
+                    }),
+                DeleteAction::make()
+                    ->label('Eliminar')
+                    ->modalDescription(function (ConfigurationOption $record): string {
+                        $count = $record->descendants()->count();
+                        if ($count === 0) {
+                            return '¿Estás seguro de que deseas eliminar esta opción?';
+                        }
+                        return "Esta opción tiene {$count} descendientes que también serán eliminados.";
+                    }),
             ]);
     }
 
