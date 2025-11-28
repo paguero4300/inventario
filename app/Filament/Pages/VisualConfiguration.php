@@ -21,11 +21,11 @@ class VisualConfiguration extends Page implements HasForms, HasActions
     use InteractsWithForms;
     use InteractsWithActions;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
-    protected static ?string $navigationLabel = 'Configurador Visual';
-    protected static ?string $title = 'Árbol de Configuración';
-    protected static ?string $navigationGroup = 'Configurador';
-    protected static ?int $navigationSort = 1;
+    protected static $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static $navigationLabel = 'Configurador Visual';
+    protected static $title = 'Árbol de Configuración';
+    protected static $navigationGroup = 'Configurador';
+    protected static $navigationSort = 1;
 
     protected static string $view = 'filament.pages.visual-configuration';
 
