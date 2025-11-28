@@ -48,6 +48,7 @@ class VisualConfiguration extends Page implements HasTree
     public function tree(Tree $tree): Tree
     {
         return $tree
+            ->query(ConfigurationOption::query())
             ->maxDepth(10)
             ->modifyQueryUsing(fn($query) => $query->orderBy('sort_order'))
             ->fields([
