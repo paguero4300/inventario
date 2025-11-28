@@ -48,11 +48,10 @@ class VisualConfiguration extends Page implements HasTree
     public function tree(Tree $tree): Tree
     {
         return $tree
-            ->model(ConfigurationOption::class)
             ->maxDepth(10)
             ->enableDragAndDrop()
-            ->tree(fn($query) => $query->orderBy('sort_order'))
-            ->schema([
+            ->modifyQueryUsing(fn($query) => $query->orderBy('sort_order'))
+            ->fields([
                 TextField::make('name')
                     ->label('Nombre'),
                 TextField::make('sku_part')
