@@ -51,10 +51,8 @@ class VisualConfiguration extends Page implements HasTree
             ->maxDepth(10)
             ->modifyQueryUsing(fn($query) => $query->orderBy('sort_order'))
             ->fields([
-                TextField::make('name')
-                    ->label('Nombre'),
-                TextField::make('sku_part')
-                    ->label('SKU'),
+                TextField::make('name'),
+                TextField::make('sku_part'),
             ]);
     }
 }
