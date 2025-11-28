@@ -10,7 +10,7 @@ class CreateConfigurationOption extends CreateRecord
 {
     protected static string $resource = ConfigurationOptionResource::class;
 
-    protected function mount()
+    public function mount()
     {
         parent::mount();
 
