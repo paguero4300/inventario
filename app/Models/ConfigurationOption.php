@@ -5,13 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use Staudenmeir\LaravelAdjacencyList\Eloquent\HasRecursiveRelationships;
+use Openplain\FilamentTreeView\Concerns\HasTreeStructure;
 
 class ConfigurationOption extends Model
 {
     use HasFactory;
-    use HasRecursiveRelationships;
+    use HasTreeStructure;
 
     protected $fillable = [
         'parent_id',
@@ -28,29 +27,11 @@ class ConfigurationOption extends Model
     ];
 
     /**
-     * Relación recursiva: Padre inmediato
+     * Configure the order column name (default is 'order', but we use 'sort_order')
      */
-    public function parent(): BelongsTo
+    public function getOrderKeyName(): string
     {
-        return $this->belongsTo(ConfigurationOption::class, 'parent_id');
-    }
-
-    /**
-     * Relación recursiva: Hijos directos
-     */
-    public function children(): HasMany
-    {
-        return $this->hasMany(ConfigurationOption::class, 'parent_id')
-            ->where('is_active', true)
-            ->orderBy('sort_order');
-    }
-
-    /**
-     * Todos los descendientes (hijos, nietos, etc.)
-     */
-    public function descendants(): HasMany
-    {
-        return $this->hasMany(ConfigurationOption::class, 'parent_id');
+        return 'sort_order';
     }
 
     /**
@@ -59,22 +40,6 @@ class ConfigurationOption extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
-    }
-
-    /**
-     * Verifica si tiene hijos
-     */
-    public function hasChildren(): bool
-    {
-        return $this->children()->exists();
-    }
-
-    /**
-     * Verifica si es nodo raíz
-     */
-    public function isRoot(): bool
-    {
-        return is_null($this->parent_id);
     }
 
     /**
