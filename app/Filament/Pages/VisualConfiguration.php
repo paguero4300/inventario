@@ -4,9 +4,9 @@ namespace App\Filament\Pages;
 
 use App\Models\ConfigurationOption;
 use Filament\Pages\Page;
-use OpenPlain\FilamentTreeView\Concerns\InteractsWithTree;
-use OpenPlain\FilamentTreeView\Fields\TextField;
-use OpenPlain\FilamentTreeView\Tree\Tree;
+use Openplain\FilamentTreeView\Concerns\InteractsWithTree;
+use Openplain\FilamentTreeView\Fields\TextField;
+use Openplain\FilamentTreeView\Tree\Tree;
 
 class VisualConfiguration extends Page
 {
