@@ -22,7 +22,7 @@ class VisualConfiguration extends Page implements HasTree
 
     public static function getNavigationLabel(): string
     {
-        return 'Configurador Visual';
+        return 'Configurador Visuals';
     }
 
     public function getTitle(): string
