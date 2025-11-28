@@ -39,30 +39,12 @@
                     </div>
                     @if($node->next_step_label)
                     <div class="text-xs text-gray-500 dark:text-gray-400 truncate">
-                        ↳ Siguiente: {{ $node->next_step_label }}
-                    </div>
-                    @endif
-                </div>
-            </div>
+                        {{-- Línea vertical continua para los hijos --}}
+                        <div class="absolute left-4 top-0 bottom-0 w-px bg-gray-200 dark:bg-gray-700 -ml-[2px]"></div>
 
-            {{-- Acciones Derecha --}}
-            <div class="flex flex-row items-center gap-1 ml-4 flex-shrink-0">
-                {{ ($this->addChildAction)(['parent_id' => $node->id]) }}
-                {{ ($this->editOptionAction)(['id' => $node->id]) }}
-                {{ ($this->deleteOptionAction)(['id' => $node->id]) }}
-            </div>
-        </div>
-    </div>
-
-    {{-- Recursividad para hijos --}}
-    @if($node->children_tree->isNotEmpty())
-    <ul class="mt-2 space-y-2 relative list-none">
-        {{-- Línea vertical continua para los hijos --}}
-        <div class="absolute left-4 top-0 bottom-0 w-px bg-gray-200 dark:bg-gray-700 -ml-[2px]"></div>
-
-        @foreach($node->children_tree as $child)
-        @include('filament.pages.partials.tree-node', ['node' => $child, 'level' => $level + 1])
-        @endforeach
-    </ul>
-    @endif
+                        @foreach($node->children_tree as $child)
+                        @include('filament.pages.partials.tree-node', ['node' => $child, 'level' => $level + 1])
+                        @endforeach
+                        </ul>
+                        @endif
 </li>
