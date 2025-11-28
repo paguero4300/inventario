@@ -7,7 +7,7 @@ use Filament\Pages\Page;
 use Openplain\FilamentTreeView\Concerns\InteractsWithTree;
 use Openplain\FilamentTreeView\Contracts\HasTree;
 use Openplain\FilamentTreeView\Fields\TextField;
-use Openplain\FilamentTreeView\Tree\Tree;
+use Openplain\FilamentTreeView\Tree;
 
 class VisualConfiguration extends Page implements HasTree
 {
