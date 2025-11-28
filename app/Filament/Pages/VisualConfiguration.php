@@ -82,7 +82,13 @@ class VisualConfiguration extends Page implements HasTree
                             ->dehydrated(),
                         Select::make('category_id')
                             ->label('Categoría')
-                            ->relationship('category', 'name')
+                            ->options(function () {
+                                return \App\Models\Category::query()
+                                    ->where('is_active', true)
+                                    ->orderBy('name')
+                                    ->pluck('name', 'id')
+                                    ->toArray();
+                            })
                             ->searchable()
                             ->nullable(),
                         TextInput::make('next_step_label')
@@ -139,7 +145,13 @@ class VisualConfiguration extends Page implements HasTree
                             ->nullable(),
                         Select::make('category_id')
                             ->label('Categoría')
-                            ->relationship('category', 'name')
+                            ->options(function () {
+                                return \App\Models\Category::query()
+                                    ->where('is_active', true)
+                                    ->orderBy('name')
+                                    ->pluck('name', 'id')
+                                    ->toArray();
+                            })
                             ->searchable()
                             ->nullable(),
                         TextInput::make('next_step_label')
@@ -194,7 +206,13 @@ class VisualConfiguration extends Page implements HasTree
                         ->nullable(),
                     Select::make('category_id')
                         ->label('Categoría')
-                        ->relationship('category', 'name')
+                        ->options(function () {
+                            return \App\Models\Category::query()
+                                ->where('is_active', true)
+                                ->orderBy('name')
+                                ->pluck('name', 'id')
+                                ->toArray();
+                        })
                         ->searchable()
                         ->nullable(),
                     TextInput::make('next_step_label')
