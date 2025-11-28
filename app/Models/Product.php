@@ -37,6 +37,7 @@ class Product extends Model
     /**
      * Calculate current stock based on inventory entries
      * Entradas (+) - Salidas (-) + Ajustes
+     * Uses quantity_base if available, falls back to quantity
      */
     public function getCurrentStock(?int $locationId = null): float
     {
@@ -46,9 +47,21 @@ class Product extends Model
             $query->where('location_id', $locationId);
         }
 
-        $entradas = $query->clone()->where('entry_type', 'entrada')->sum('quantity_base') ?? 0;
-        $salidas = $query->clone()->where('entry_type', 'salida')->sum('quantity_base') ?? 0;
-        $ajustes = $query->clone()->where('entry_type', 'ajuste')->sum('quantity_base') ?? 0;
+        // Use COALESCE to fallback to quantity if quantity_base is NULL
+        $entradas = $query->clone()
+            ->where('entry_type', 'entrada')
+            ->selectRaw('COALESCE(SUM(quantity_base), SUM(quantity)) as total')
+            ->value('total') ?? 0;
+
+        $salidas = $query->clone()
+            ->where('entry_type', 'salida')
+            ->selectRaw('COALESCE(SUM(quantity_base), SUM(quantity)) as total')
+            ->value('total') ?? 0;
+
+        $ajustes = $query->clone()
+            ->where('entry_type', 'ajuste')
+            ->selectRaw('COALESCE(SUM(quantity_base), SUM(quantity)) as total')
+            ->value('total') ?? 0;
 
         return $entradas - $salidas + $ajustes;
     }

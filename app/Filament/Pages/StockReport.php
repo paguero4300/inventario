@@ -66,7 +66,8 @@ class StockReport extends Page implements HasTable
                     ->getStateUsing(function ($record) {
                         return $record->inventoryEntries()
                             ->where('entry_type', 'entrada')
-                            ->sum('quantity_base') ?? 0;
+                            ->selectRaw('COALESCE(SUM(quantity_base), SUM(quantity)) as total')
+                            ->value('total') ?? 0;
                     })
                     ->numeric(decimalPlaces: 2)
                     ->color('success'),
@@ -75,7 +76,8 @@ class StockReport extends Page implements HasTable
                     ->getStateUsing(function ($record) {
                         return $record->inventoryEntries()
                             ->where('entry_type', 'salida')
-                            ->sum('quantity_base') ?? 0;
+                            ->selectRaw('COALESCE(SUM(quantity_base), SUM(quantity)) as total')
+                            ->value('total') ?? 0;
                     })
                     ->numeric(decimalPlaces: 2)
                     ->color('danger'),
@@ -84,7 +86,8 @@ class StockReport extends Page implements HasTable
                     ->getStateUsing(function ($record) {
                         return $record->inventoryEntries()
                             ->where('entry_type', 'ajuste')
-                            ->sum('quantity_base') ?? 0;
+                            ->selectRaw('COALESCE(SUM(quantity_base), SUM(quantity)) as total')
+                            ->value('total') ?? 0;
                     })
                     ->numeric(decimalPlaces: 2)
                     ->color('warning'),
