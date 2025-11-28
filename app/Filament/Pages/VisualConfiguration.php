@@ -46,7 +46,7 @@ class VisualConfiguration extends Page implements HasForms, HasActions
         return 'Configurador';
     }
 
-    protected static string $view = 'filament.pages.visual-configuration';
+    protected string $view = 'filament.pages.visual-configuration';
 
     public ?string $activeTab = null;
 
