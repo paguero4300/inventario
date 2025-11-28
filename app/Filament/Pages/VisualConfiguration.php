@@ -12,7 +12,7 @@ class VisualConfiguration extends Page
 {
     use InteractsWithTree;
 
-    protected static string $view = 'filament-tree-view::pages.tree-page';
+    protected string $view = 'filament-tree-view::pages.tree-page';
 
     public static function getNavigationIcon(): ?string
     {
