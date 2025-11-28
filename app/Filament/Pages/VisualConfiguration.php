@@ -21,10 +21,25 @@ class VisualConfiguration extends Page implements HasForms, HasActions
     use InteractsWithForms;
     use InteractsWithActions;
 
-    protected static $navigationIcon = 'heroicon-o-rectangle-stack';
-    protected static $navigationLabel = 'Configurador Visual';
-    protected static $title = 'Árbol de Configuración';
-    protected static $navigationSort = 1;
+    public static function getNavigationIcon(): ?string
+    {
+        return 'heroicon-o-rectangle-stack';
+    }
+
+    public static function getNavigationLabel(): string
+    {
+        return 'Configurador Visual';
+    }
+
+    public function getTitle(): string
+    {
+        return 'Árbol de Configuración';
+    }
+
+    public static function getNavigationSort(): ?int
+    {
+        return 1;
+    }
 
     public static function getNavigationGroup(): ?string
     {
