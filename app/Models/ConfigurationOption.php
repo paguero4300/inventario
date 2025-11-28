@@ -89,12 +89,27 @@ class ConfigurationOption extends Model
     {
         parent::boot();
 
-        // Override deletion to handle descendants manually (fixes MariaDB CTE issue)
+        // CRITICAL: Override the trait's recursive delete behavior
+        // The HasTreeStructure trait uses CTEs which break on MariaDB
         static::deleting(function (ConfigurationOption $option) {
-            // Get all descendants recursively and delete them
-            $option->deleteDescendantsManually();
+            // Prevent infinite loop by checking if we're already deleting children
+            if (!isset($option->deletingChildren)) {
+                $option->deletingChildren = true;
+                $option->deleteDescendantsManually();
+            }
         });
     }
+
+    /**
+     * Override the trait's boot method to prevent CTE-based delete registration
+     * This completely disables the trait's automatic delete behavior
+     */
+    protected static function bootHasTreeStructure()
+    {
+        // DO NOTHING - this prevents the trait from registering its own delete events
+        // which use CTEs and break on MariaDB
+    }
+
 
     /**
      * Manually delete all descendants (workaround for MariaDB CTE issue)
@@ -123,5 +138,30 @@ class ConfigurationOption extends Model
         }
 
         return $count;
+    }
+
+    /**
+     * Override the trait's descendants() method to avoid CTE issues
+     * Returns a collection instead of a query builder to prevent CTE usage
+     */
+    public function descendants()
+    {
+        return $this->getDescendantsCollection();
+    }
+
+    /**
+     * Manually get all descendants as a collection (workaround for MariaDB CTE issue)
+     */
+    protected function getDescendantsCollection()
+    {
+        $descendants = collect();
+        $children = static::where('parent_id', $this->id)->get();
+
+        foreach ($children as $child) {
+            $descendants->push($child);
+            $descendants = $descendants->merge($child->getDescendantsCollection());
+        }
+
+        return $descendants;
     }
 }
