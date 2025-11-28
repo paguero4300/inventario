@@ -28,7 +28,7 @@ class VisualConfiguration extends Page implements HasTree
 
     public static function getNavigationLabel(): string
     {
-        return 'Configurador Visuals';
+        return 'Configurador Visual';
     }
 
     public function getTitle(): string
@@ -60,48 +60,6 @@ class VisualConfiguration extends Page implements HasTree
             ->fields([
                 TextField::make('name'),
                 TextField::make('sku_part'),
-            ])
-            ->actions([
-                Action::make('create')
-                    ->label('Nueva Opción')
-                    ->icon('heroicon-o-plus')
-                    ->form([
-                        TextInput::make('name')
-                            ->label('Nombre')
-                            ->required()
-                            ->maxLength(100),
-                        TextInput::make('sku_part')
-                            ->label('SKU')
-                            ->maxLength(50),
-                        Select::make('parent_id')
-                            ->label('Padre')
-                            ->options(ConfigurationOption::query()->pluck('name', 'id'))
-                            ->searchable()
-                            ->nullable(),
-                        Select::make('category_id')
-                            ->label('Categoría')
-                            ->relationship('category', 'name')
-                            ->searchable()
-                            ->nullable(),
-                        TextInput::make('next_step_label')
-                            ->label('Etiqueta Siguiente Paso')
-                            ->maxLength(100),
-                        TextInput::make('sort_order')
-                            ->label('Orden')
-                            ->numeric()
-                            ->default(0),
-                        Toggle::make('is_active')
-                            ->label('Activo')
-                            ->default(true),
-                    ])
-                    ->action(function (array $data) {
-                        ConfigurationOption::create($data);
-
-                        Notification::make()
-                            ->title('Opción creada exitosamente')
-                            ->success()
-                            ->send();
-                    }),
             ])
             ->recordActions([
                 Action::make('edit')
@@ -168,6 +126,52 @@ class VisualConfiguration extends Page implements HasTree
                         return "Esta opción tiene {$count} descendientes que también serán eliminados.";
                     }),
             ]);
+    }
+
+    protected function getHeaderActions(): array
+    {
+        return [
+            Action::make('create')
+                ->label('Nueva Opción')
+                ->icon('heroicon-o-plus')
+                ->form([
+                    TextInput::make('name')
+                        ->label('Nombre')
+                        ->required()
+                        ->maxLength(100),
+                    TextInput::make('sku_part')
+                        ->label('SKU')
+                        ->maxLength(50),
+                    Select::make('parent_id')
+                        ->label('Padre')
+                        ->options(ConfigurationOption::query()->pluck('name', 'id'))
+                        ->searchable()
+                        ->nullable(),
+                    Select::make('category_id')
+                        ->label('Categoría')
+                        ->relationship('category', 'name')
+                        ->searchable()
+                        ->nullable(),
+                    TextInput::make('next_step_label')
+                        ->label('Etiqueta Siguiente Paso')
+                        ->maxLength(100),
+                    TextInput::make('sort_order')
+                        ->label('Orden')
+                        ->numeric()
+                        ->default(0),
+                    Toggle::make('is_active')
+                        ->label('Activo')
+                        ->default(true),
+                ])
+                ->action(function (array $data) {
+                    ConfigurationOption::create($data);
+
+                    Notification::make()
+                        ->title('Opción creada exitosamente')
+                        ->success()
+                        ->send();
+                }),
+        ];
     }
 
     /**
