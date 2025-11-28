@@ -27,14 +27,6 @@ class ConfigurationOption extends Model
     ];
 
     /**
-     * Configure the order column name (default is 'order', but we use 'sort_order')
-     */
-    public function getOrderKeyName(): string
-    {
-        return 'sort_order';
-    }
-
-    /**
      * Categoría asociada
      */
     public function category(): BelongsTo
