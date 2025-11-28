@@ -25,7 +25,15 @@ class ProductForm
                     ->icon('heroicon-o-cube')
                     ->schema([
                         Select::make('category_id')
-                            ->relationship('category', 'name')
+                            ->label('Category')
+                            ->options(function () {
+                                return Category::query()
+                                    ->where('is_active', true)
+                                    ->orderBy('name')
+                                    ->pluck('name', 'id')
+                                    ->toArray();
+                            })
+                            ->searchable()
                             ->required()
                             ->live()
                             ->prefixIcon('heroicon-m-tag')
