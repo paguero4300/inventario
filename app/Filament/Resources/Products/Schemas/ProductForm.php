@@ -4,7 +4,8 @@ namespace App\Filament\Resources\Products\Schemas;
 
 use App\Models\Category;
 use App\Models\ConfigurationOption;
-use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Wizard;
+use Filament\Schemas\Components\Wizard\Step;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -20,171 +21,268 @@ class ProductForm
     {
         return $schema
             ->components([
-                Section::make('Basic Information')
-                    ->description('Core product details')
-                    ->icon('heroicon-o-cube')
-                    ->schema([
-                        Select::make('category_id')
-                            ->label('Category')
-                            ->options(function () {
-                                return Category::query()
-                                    ->where('is_active', true)
-                                    ->orderBy('name')
-                                    ->pluck('name', 'id')
-                                    ->toArray();
-                            })
-                            ->searchable()
-                            ->required()
-                            ->live()
-                            ->prefixIcon('heroicon-m-tag')
-                            ->afterStateUpdated(function (Set $set) {
-                                // Reset cascade when category changes
-                                for ($i = 0; $i <= 9; $i++) {
-                                    $set("config_level_{$i}", null);
-                                }
-                                $set('sku', '');
-                            }),
-                        TextInput::make('sku')
-                            ->label('SKU')
-                            ->required()
-                            ->unique(ignoreRecord: true)
-                            ->prefixIcon('heroicon-m-qr-code')
-                            ->readOnly()
-                            ->helperText('Auto-generated from configuration'),
-                        TextInput::make('name')
-                            ->required()
-                            ->prefixIcon('heroicon-m-cube'),
-                    ])->columns(2),
+                Wizard::make([
+                    // STEP 1: Basic Information
+                    Step::make('Basic Information')
+                        ->description('Select category and product name')
+                        ->icon('heroicon-o-cube')
+                        ->schema([
+                            Select::make('category_id')
+                                ->label('Category')
+                                ->options(function () {
+                                    return Category::query()
+                                        ->where('is_active', true)
+                                        ->orderBy('name')
+                                        ->pluck('name', 'id')
+                                        ->toArray();
+                                })
+                                ->searchable()
+                                ->native(false)
+                                ->required()
+                                ->live()
+                                ->prefixIcon('heroicon-m-tag')
+                                ->placeholder('Choose a category first...')
+                                ->helperText('Select the category to unlock product configuration')
+                                ->afterStateUpdated(function (Set $set) {
+                                    // Reset cascade when category changes
+                                    for ($i = 0; $i <= 9; $i++) {
+                                        $set("config_level_{$i}", null);
+                                    }
+                                    $set('sku', '');
+                                })
+                                ->columnSpanFull(),
 
-                Section::make('Product Configuration')
-                    ->description('Configure product using cascade selectors')
-                    ->icon('heroicon-o-adjustments-horizontal')
-                    ->schema([
-                        // Level 0 - Root
-                        Select::make('config_level_0')
-                            ->label(fn(Get $get) => static::getSelectLabel($get, 0))
-                            ->options(fn(Get $get) => static::getOptions($get, 0))
-                            ->visible(fn(Get $get) => static::hasOptions($get, 0))
-                            ->live()
-                            ->afterStateUpdated(function (Set $set, $state, Get $get) {
-                                static::handleSelectionChange($set, $get, 0, $state);
-                            }),
+                            TextInput::make('name')
+                                ->label('Product Name')
+                                ->required()
+                                ->prefixIcon('heroicon-m-cube')
+                                ->placeholder('Enter product name...')
+                                ->helperText('Descriptive name for this product')
+                                ->columnSpanFull(),
 
-                        // Level 1
-                        Select::make('config_level_1')
-                            ->label(fn(Get $get) => static::getSelectLabel($get, 1))
-                            ->options(fn(Get $get) => static::getOptions($get, 1))
-                            ->visible(fn(Get $get) => static::hasOptions($get, 1))
-                            ->live()
-                            ->afterStateUpdated(function (Set $set, $state, Get $get) {
-                                static::handleSelectionChange($set, $get, 1, $state);
-                            }),
 
-                        // Level 2
-                        Select::make('config_level_2')
-                            ->label(fn(Get $get) => static::getSelectLabel($get, 2))
-                            ->options(fn(Get $get) => static::getOptions($get, 2))
-                            ->visible(fn(Get $get) => static::hasOptions($get, 2))
-                            ->live()
-                            ->afterStateUpdated(function (Set $set, $state, Get $get) {
-                                static::handleSelectionChange($set, $get, 2, $state);
-                            }),
+                            // SKU Field - ReadOnly but included in submit
+                            TextInput::make('sku')
+                                ->label('Generated SKU')
+                                ->unique(ignoreRecord: true)
+                                ->readOnly()
+                                ->dehydrated()
+                                ->prefixIcon('heroicon-m-qr-code')
+                                ->placeholder('Will be generated from configuration')
+                                ->helperText('Auto-generated based on your configuration choices')
+                                ->default('')
+                                ->columnSpanFull(),
+                        ])
+                        ->columns(1)
+                        ->completedIcon('heroicon-m-check-badge'),
 
-                        // Level 3
-                        Select::make('config_level_3')
-                            ->label(fn(Get $get) => static::getSelectLabel($get, 3))
-                            ->options(fn(Get $get) => static::getOptions($get, 3))
-                            ->visible(fn(Get $get) => static::hasOptions($get, 3))
-                            ->live()
-                            ->afterStateUpdated(function (Set $set, $state, Get $get) {
-                                static::handleSelectionChange($set, $get, 3, $state);
-                            }),
+                    // STEP 2: Product Configuration
+                    Step::make('Configuration')
+                        ->description('Configure product using cascade selectors')
+                        ->icon('heroicon-o-adjustments-horizontal')
+                        ->schema([
+                            Placeholder::make('config_help')
+                                ->label('📋 Configuration Guide')
+                                ->content('Select options step by step. Each choice unlocks the next level.')
+                                ->columnSpanFull(),
 
-                        // Level 4
-                        Select::make('config_level_4')
-                            ->label(fn(Get $get) => static::getSelectLabel($get, 4))
-                            ->options(fn(Get $get) => static::getOptions($get, 4))
-                            ->visible(fn(Get $get) => static::hasOptions($get, 4))
-                            ->live()
-                            ->afterStateUpdated(function (Set $set, $state, Get $get) {
-                                static::handleSelectionChange($set, $get, 4, $state);
-                            }),
+                            // Level 0 - Root
+                            Select::make('config_level_0')
+                                ->label(fn(Get $get) => static::getSelectLabel($get, 0))
+                                ->options(fn(Get $get) => static::getOptions($get, 0))
+                                ->visible(fn(Get $get) => static::hasOptions($get, 0))
+                                ->native(false)
+                                ->searchable()
+                                ->live()
+                                ->placeholder('Select material...')
+                                ->helperText(fn(Get $get) => static::getHelperText($get, 0))
+                                ->afterStateUpdated(function (Set $set, $state, Get $get) {
+                                    static::handleSelectionChange($set, $get, 0, $state);
+                                })
+                                ->columnSpanFull(),
 
-                        // Level 5
-                        Select::make('config_level_5')
-                            ->label(fn(Get $get) => static::getSelectLabel($get, 5))
-                            ->options(fn(Get $get) => static::getOptions($get, 5))
-                            ->visible(fn(Get $get) => static::hasOptions($get, 5))
-                            ->live()
-                            ->afterStateUpdated(function (Set $set, $state, Get $get) {
-                                static::handleSelectionChange($set, $get, 5, $state);
-                            }),
+                            // Level 1
+                            Select::make('config_level_1')
+                                ->label(fn(Get $get) => static::getSelectLabel($get, 1))
+                                ->options(fn(Get $get) => static::getOptions($get, 1))
+                                ->visible(fn(Get $get) => static::hasOptions($get, 1))
+                                ->native(false)
+                                ->searchable()
+                                ->live()
+                                ->placeholder('Choose next option...')
+                                ->helperText(fn(Get $get) => static::getHelperText($get, 1))
+                                ->afterStateUpdated(function (Set $set, $state, Get $get) {
+                                    static::handleSelectionChange($set, $get, 1, $state);
+                                })
+                                ->columnSpanFull(),
 
-                        // Level 6
-                        Select::make('config_level_6')
-                            ->label(fn(Get $get) => static::getSelectLabel($get, 6))
-                            ->options(fn(Get $get) => static::getOptions($get, 6))
-                            ->visible(fn(Get $get) => static::hasOptions($get, 6))
-                            ->live()
-                            ->afterStateUpdated(function (Set $set, $state, Get $get) {
-                                static::handleSelectionChange($set, $get, 6, $state);
-                            }),
+                            // Level 2
+                            Select::make('config_level_2')
+                                ->label(fn(Get $get) => static::getSelectLabel($get, 2))
+                                ->options(fn(Get $get) => static::getOptions($get, 2))
+                                ->visible(fn(Get $get) => static::hasOptions($get, 2))
+                                ->native(false)
+                                ->searchable()
+                                ->live()
+                                ->placeholder('Choose next option...')
+                                ->helperText(fn(Get $get) => static::getHelperText($get, 2))
+                                ->afterStateUpdated(function (Set $set, $state, Get $get) {
+                                    static::handleSelectionChange($set, $get, 2, $state);
+                                })
+                                ->columnSpanFull(),
 
-                        // Level 7
-                        Select::make('config_level_7')
-                            ->label(fn(Get $get) => static::getSelectLabel($get, 7))
-                            ->options(fn(Get $get) => static::getOptions($get, 7))
-                            ->visible(fn(Get $get) => static::hasOptions($get, 7))
-                            ->live()
-                            ->afterStateUpdated(function (Set $set, $state, Get $get) {
-                                static::handleSelectionChange($set, $get, 7, $state);
-                            }),
+                            // Level 3
+                            Select::make('config_level_3')
+                                ->label(fn(Get $get) => static::getSelectLabel($get, 3))
+                                ->options(fn(Get $get) => static::getOptions($get, 3))
+                                ->visible(fn(Get $get) => static::hasOptions($get, 3))
+                                ->native(false)
+                                ->searchable()
+                                ->live()
+                                ->placeholder('Choose next option...')
+                                ->helperText(fn(Get $get) => static::getHelperText($get, 3))
+                                ->afterStateUpdated(function (Set $set, $state, Get $get) {
+                                    static::handleSelectionChange($set, $get, 3, $state);
+                                })
+                                ->columnSpanFull(),
 
-                        // Level 8
-                        Select::make('config_level_8')
-                            ->label(fn(Get $get) => static::getSelectLabel($get, 8))
-                            ->options(fn(Get $get) => static::getOptions($get, 8))
-                            ->visible(fn(Get $get) => static::hasOptions($get, 8))
-                            ->live()
-                            ->afterStateUpdated(function (Set $set, $state, Get $get) {
-                                static::handleSelectionChange($set, $get, 8, $state);
-                            }),
+                            // Level 4
+                            Select::make('config_level_4')
+                                ->label(fn(Get $get) => static::getSelectLabel($get, 4))
+                                ->options(fn(Get $get) => static::getOptions($get, 4))
+                                ->visible(fn(Get $get) => static::hasOptions($get, 4))
+                                ->native(false)
+                                ->searchable()
+                                ->live()
+                                ->placeholder('Choose next option...')
+                                ->helperText(fn(Get $get) => static::getHelperText($get, 4))
+                                ->afterStateUpdated(function (Set $set, $state, Get $get) {
+                                    static::handleSelectionChange($set, $get, 4, $state);
+                                })
+                                ->columnSpanFull(),
 
-                        // Level 9
-                        Select::make('config_level_9')
-                            ->label(fn(Get $get) => static::getSelectLabel($get, 9))
-                            ->options(fn(Get $get) => static::getOptions($get, 9))
-                            ->visible(fn(Get $get) => static::hasOptions($get, 9))
-                            ->live()
-                            ->afterStateUpdated(function (Set $set, $state, Get $get) {
-                                static::handleSelectionChange($set, $get, 9, $state);
-                            }),
+                            // Level 5
+                            Select::make('config_level_5')
+                                ->label(fn(Get $get) => static::getSelectLabel($get, 5))
+                                ->options(fn(Get $get) => static::getOptions($get, 5))
+                                ->visible(fn(Get $get) => static::hasOptions($get, 5))
+                                ->native(false)
+                                ->searchable()
+                                ->live()
+                                ->placeholder('Choose next option...')
+                                ->helperText(fn(Get $get) => static::getHelperText($get, 5))
+                                ->afterStateUpdated(function (Set $set, $state, Get $get) {
+                                    static::handleSelectionChange($set, $get, 5, $state);
+                                })
+                                ->columnSpanFull(),
 
-                        Placeholder::make('config_complete')
-                            ->label('✅ Configuration Complete')
-                            ->content(fn(Get $get) => 'SKU: ' . $get('sku'))
-                            ->visible(fn(Get $get) => !empty($get('sku')) && static::isConfigComplete($get))
-                            ->columnSpanFull(),
-                    ])
-                    ->columns(2)
-                    ->collapsible()
-                    ->visible(fn(Get $get) => $get('category_id') !== null),
+                            // Level 6
+                            Select::make('config_level_6')
+                                ->label(fn(Get $get) => static::getSelectLabel($get, 6))
+                                ->options(fn(Get $get) => static::getOptions($get, 6))
+                                ->visible(fn(Get $get) => static::hasOptions($get, 6))
+                                ->native(false)
+                                ->searchable()
+                                ->live()
+                                ->placeholder('Choose next option...')
+                                ->helperText(fn(Get $get) => static::getHelperText($get, 6))
+                                ->afterStateUpdated(function (Set $set, $state, Get $get) {
+                                    static::handleSelectionChange($set, $get, 6, $state);
+                                })
+                                ->columnSpanFull(),
 
-                Section::make('Additional Details')
-                    ->description('Extra information and status')
-                    ->icon('heroicon-o-clipboard-document-list')
-                    ->schema([
-                        TextInput::make('dimensions')
-                            ->prefixIcon('heroicon-m-arrows-pointing-out'),
-                        TextInput::make('color')
-                            ->prefixIcon('heroicon-m-swatch'),
-                        Textarea::make('notes')
-                            ->columnSpanFull(),
-                        Toggle::make('is_active')
-                            ->required()
-                            ->default(true)
-                            ->inline(false),
-                    ])->columns(2),
+                            // Level 7
+                            Select::make('config_level_7')
+                                ->label(fn(Get $get) => static::getSelectLabel($get, 7))
+                                ->options(fn(Get $get) => static::getOptions($get, 7))
+                                ->visible(fn(Get $get) => static::hasOptions($get, 7))
+                                ->native(false)
+                                ->searchable()
+                                ->live()
+                                ->placeholder('Choose next option...')
+                                ->helperText(fn(Get $get) => static::getHelperText($get, 7))
+                                ->afterStateUpdated(function (Set $set, $state, Get $get) {
+                                    static::handleSelectionChange($set, $get, 7, $state);
+                                })
+                                ->columnSpanFull(),
+
+                            // Level 8
+                            Select::make('config_level_8')
+                                ->label(fn(Get $get) => static::getSelectLabel($get, 8))
+                                ->options(fn(Get $get) => static::getOptions($get, 8))
+                                ->visible(fn(Get $get) => static::hasOptions($get, 8))
+                                ->native(false)
+                                ->searchable()
+                                ->live()
+                                ->placeholder('Choose next option...')
+                                ->helperText(fn(Get $get) => static::getHelperText($get, 8))
+                                ->afterStateUpdated(function (Set $set, $state, Get $get) {
+                                    static::handleSelectionChange($set, $get, 8, $state);
+                                })
+                                ->columnSpanFull(),
+
+                            // Level 9
+                            Select::make('config_level_9')
+                                ->label(fn(Get $get) => static::getSelectLabel($get, 9))
+                                ->options(fn(Get $get) => static::getOptions($get, 9))
+                                ->visible(fn(Get $get) => static::hasOptions($get, 9))
+                                ->native(false)
+                                ->searchable()
+                                ->live()
+                                ->placeholder('Choose next option...')
+                                ->helperText(fn(Get $get) => static::getHelperText($get, 9))
+                                ->afterStateUpdated(function (Set $set, $state, Get $get) {
+                                    static::handleSelectionChange($set, $get, 9, $state);
+                                })
+                                ->columnSpanFull(),
+
+                            // Completion Badge
+                            Placeholder::make('config_complete')
+                                ->label('✅ Configuration Complete')
+                                ->content(fn(Get $get) => 'Generated SKU: **' . $get('sku') . '**')
+                                ->visible(fn(Get $get) => !empty($get('sku')) && static::isConfigComplete($get))
+                                ->columnSpanFull(),
+                        ])
+                        ->columns(1)
+                        ->completedIcon('heroicon-m-check-badge'),
+
+                    // STEP 3: Additional Details
+                    Step::make('Details')
+                        ->description('Extra information and product status')
+                        ->icon('heroicon-o-clipboard-document-list')
+                        ->schema([
+                            TextInput::make('dimensions')
+                                ->label('Dimensions')
+                                ->prefixIcon('heroicon-m-arrows-pointing-out')
+                                ->placeholder('e.g., 10x20x30 cm')
+                                ->columnSpanFull(),
+
+                            TextInput::make('color')
+                                ->label('Color')
+                                ->prefixIcon('heroicon-m-swatch')
+                                ->placeholder('e.g., Blue, Red, Custom')
+                                ->columnSpanFull(),
+
+                            Textarea::make('notes')
+                                ->label('Additional Notes')
+                                ->placeholder('Any special instructions or details...')
+                                ->rows(3)
+                                ->columnSpanFull(),
+
+                            Toggle::make('is_active')
+                                ->label('Active Product')
+                                ->required()
+                                ->default(true)
+                                ->inline(false)
+                                ->helperText('Enable this to make the product visible in the system')
+                                ->columnSpanFull(),
+                        ])
+                        ->columns(1)
+                        ->completedIcon('heroicon-m-check-badge'),
+                ])
+                    ->columnSpanFull()
+                    ->skippable(false)
+                    ->persistStepInQueryString(),
             ]);
     }
 
@@ -278,5 +376,20 @@ class ProductForm
             }
         }
         return false;
+    }
+
+    protected static function getHelperText(Get $get, int $level): string
+    {
+        $selectedId = $get("config_level_{$level}");
+
+        if ($selectedId) {
+            $option = ConfigurationOption::find($selectedId);
+            if ($option && $option->hasChildren()) {
+                return "Step {$level}: Continue selecting to refine your configuration";
+            }
+            return "Step {$level}: Selection complete ✓";
+        }
+
+        return "Step {$level}: Make your selection";
     }
 }

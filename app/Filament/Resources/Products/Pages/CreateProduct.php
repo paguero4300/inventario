@@ -26,6 +26,11 @@ class CreateProduct extends CreateRecord
         // Save specifications as JSON
         $data['specifications'] = $specifications;
 
+        // Ensure SKU is present - if not, throw error
+        if (empty($data['sku'])) {
+            throw new \Exception('SKU is required. Please complete the product configuration.');
+        }
+
         return $data;
     }
 }
