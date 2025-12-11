@@ -11,10 +11,10 @@ class CreateProduct extends CreateRecord
 
     protected function mutateFormDataBeforeCreate(array $data): array
     {
-        // Save configuration levels in specifications
+        // Save configuration levels in specifications (supports up to level 9)
         $specifications = [];
 
-        for ($i = 0; $i <= 4; $i++) {
+        for ($i = 0; $i <= 9; $i++) {
             $key = "config_level_{$i}";
             if (isset($data[$key]) && $data[$key]) {
                 $specifications[$key] = $data[$key];

@@ -21,9 +21,9 @@ class EditProduct extends EditRecord
 
     protected function mutateFormDataBeforeFill(array $data): array
     {
-        // Load configuration levels from specifications
+        // Load configuration levels from specifications (supports up to level 9)
         if (isset($data['specifications']) && is_array($data['specifications'])) {
-            for ($i = 0; $i <= 4; $i++) {
+            for ($i = 0; $i <= 9; $i++) {
                 $key = "config_level_{$i}";
                 if (isset($data['specifications'][$key])) {
                     $data[$key] = $data['specifications'][$key];
@@ -36,10 +36,10 @@ class EditProduct extends EditRecord
 
     protected function mutateFormDataBeforeSave(array $data): array
     {
-        // Save configuration levels in specifications
+        // Save configuration levels in specifications (supports up to level 9)
         $specifications = [];
 
-        for ($i = 0; $i <= 4; $i++) {
+        for ($i = 0; $i <= 9; $i++) {
             $key = "config_level_{$i}";
             if (isset($data[$key]) && $data[$key]) {
                 $specifications[$key] = $data[$key];
