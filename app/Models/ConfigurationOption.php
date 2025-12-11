@@ -164,4 +164,13 @@ class ConfigurationOption extends Model
 
         return $descendants;
     }
+
+    /**
+     * Check if this configuration option has any children
+     * This method is used by ProductForm to determine if configuration is complete
+     */
+    public function hasChildren(): bool
+    {
+        return static::where('parent_id', $this->id)->exists();
+    }
 }

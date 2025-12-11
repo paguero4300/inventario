@@ -94,10 +94,6 @@ class VisualConfiguration extends Page implements HasTree
                         TextInput::make('next_step_label')
                             ->label('Etiqueta Siguiente Paso')
                             ->maxLength(100),
-                        TextInput::make('sort_order')
-                            ->label('Orden')
-                            ->numeric()
-                            ->default(0),
                         Toggle::make('is_active')
                             ->label('Activo')
                             ->default(true),
@@ -106,6 +102,11 @@ class VisualConfiguration extends Page implements HasTree
                         'parent_id' => $record->id,
                     ])
                     ->action(function (ConfigurationOption $record, array $data) {
+                        // Auto-calculate sort_order based on siblings
+                        $maxOrder = ConfigurationOption::where('parent_id', $record->id)
+                            ->max('sort_order') ?? -1;
+                        $data['sort_order'] = $maxOrder + 1;
+
                         ConfigurationOption::create($data);
 
                         Notification::make()
@@ -158,14 +159,17 @@ class VisualConfiguration extends Page implements HasTree
                             ->label('Etiqueta Siguiente Paso')
                             ->maxLength(100),
                         TextInput::make('sort_order')
-                            ->label('Orden')
+                            ->label('Orden (Auto)')
                             ->numeric()
-                            ->default(0),
+                            ->disabled()
+                            ->dehydrated(false)
+                            ->helperText('El orden se calcula automáticamente'),
                         Toggle::make('is_active')
                             ->label('Activo')
                             ->default(true),
                     ])
                     ->action(function (ConfigurationOption $record, array $data) {
+                        // Keep existing sort_order on edit
                         $record->update($data);
 
                         Notification::make()
@@ -218,15 +222,23 @@ class VisualConfiguration extends Page implements HasTree
                     TextInput::make('next_step_label')
                         ->label('Etiqueta Siguiente Paso')
                         ->maxLength(100),
-                    TextInput::make('sort_order')
-                        ->label('Orden')
-                        ->numeric()
-                        ->default(0),
                     Toggle::make('is_active')
                         ->label('Activo')
                         ->default(true),
                 ])
                 ->action(function (array $data) {
+                    // Auto-calculate sort_order for root level items
+                    if (isset($data['parent_id'])) {
+                        $maxOrder = ConfigurationOption::where('parent_id', $data['parent_id'])
+                            ->max('sort_order') ?? -1;
+                    } else {
+                        // For root items, calculate based on category
+                        $maxOrder = ConfigurationOption::whereNull('parent_id')
+                            ->where('category_id', $data['category_id'] ?? null)
+                            ->max('sort_order') ?? -1;
+                    }
+                    $data['sort_order'] = $maxOrder + 1;
+
                     ConfigurationOption::create($data);
 
                     Notification::make()

@@ -39,11 +39,9 @@ class ProductForm
                             ->prefixIcon('heroicon-m-tag')
                             ->afterStateUpdated(function (Set $set) {
                                 // Reset cascade when category changes
-                                $set('config_level_0', null);
-                                $set('config_level_1', null);
-                                $set('config_level_2', null);
-                                $set('config_level_3', null);
-                                $set('config_level_4', null);
+                                for ($i = 0; $i <= 9; $i++) {
+                                    $set("config_level_{$i}", null);
+                                }
                                 $set('sku', '');
                             }),
                         TextInput::make('sku')
@@ -110,6 +108,56 @@ class ProductForm
                             ->live()
                             ->afterStateUpdated(function (Set $set, $state, Get $get) {
                                 static::handleSelectionChange($set, $get, 4, $state);
+                            }),
+
+                        // Level 5
+                        Select::make('config_level_5')
+                            ->label(fn(Get $get) => static::getSelectLabel($get, 5))
+                            ->options(fn(Get $get) => static::getOptions($get, 5))
+                            ->visible(fn(Get $get) => static::hasOptions($get, 5))
+                            ->live()
+                            ->afterStateUpdated(function (Set $set, $state, Get $get) {
+                                static::handleSelectionChange($set, $get, 5, $state);
+                            }),
+
+                        // Level 6
+                        Select::make('config_level_6')
+                            ->label(fn(Get $get) => static::getSelectLabel($get, 6))
+                            ->options(fn(Get $get) => static::getOptions($get, 6))
+                            ->visible(fn(Get $get) => static::hasOptions($get, 6))
+                            ->live()
+                            ->afterStateUpdated(function (Set $set, $state, Get $get) {
+                                static::handleSelectionChange($set, $get, 6, $state);
+                            }),
+
+                        // Level 7
+                        Select::make('config_level_7')
+                            ->label(fn(Get $get) => static::getSelectLabel($get, 7))
+                            ->options(fn(Get $get) => static::getOptions($get, 7))
+                            ->visible(fn(Get $get) => static::hasOptions($get, 7))
+                            ->live()
+                            ->afterStateUpdated(function (Set $set, $state, Get $get) {
+                                static::handleSelectionChange($set, $get, 7, $state);
+                            }),
+
+                        // Level 8
+                        Select::make('config_level_8')
+                            ->label(fn(Get $get) => static::getSelectLabel($get, 8))
+                            ->options(fn(Get $get) => static::getOptions($get, 8))
+                            ->visible(fn(Get $get) => static::hasOptions($get, 8))
+                            ->live()
+                            ->afterStateUpdated(function (Set $set, $state, Get $get) {
+                                static::handleSelectionChange($set, $get, 8, $state);
+                            }),
+
+                        // Level 9
+                        Select::make('config_level_9')
+                            ->label(fn(Get $get) => static::getSelectLabel($get, 9))
+                            ->options(fn(Get $get) => static::getOptions($get, 9))
+                            ->visible(fn(Get $get) => static::hasOptions($get, 9))
+                            ->live()
+                            ->afterStateUpdated(function (Set $set, $state, Get $get) {
+                                static::handleSelectionChange($set, $get, 9, $state);
                             }),
 
                         Placeholder::make('config_complete')
@@ -199,13 +247,13 @@ class ProductForm
     protected static function handleSelectionChange(Set $set, Get $get, int $level, $optionId): void
     {
         // Reset subsequent levels
-        for ($i = $level + 1; $i <= 4; $i++) {
+        for ($i = $level + 1; $i <= 9; $i++) {
             $set("config_level_{$i}", null);
         }
 
         // Generate SKU
         $skuParts = [];
-        for ($i = 0; $i <= 4; $i++) {
+        for ($i = 0; $i <= 9; $i++) {
             $selectedId = $get("config_level_{$i}");
             if ($selectedId) {
                 $option = ConfigurationOption::find($selectedId);
@@ -222,7 +270,7 @@ class ProductForm
     protected static function isConfigComplete(Get $get): bool
     {
         // Check if last selected option has no children
-        for ($level = 4; $level >= 0; $level--) {
+        for ($level = 9; $level >= 0; $level--) {
             $selectedId = $get("config_level_{$level}");
             if ($selectedId) {
                 $option = ConfigurationOption::find($selectedId);
