@@ -10,6 +10,7 @@ class CategoryInfolist
 {
     public static function configure(Schema $schema): Schema
     {
+        //categorias
         return $schema
             ->components([
                 TextEntry::make('name'),
